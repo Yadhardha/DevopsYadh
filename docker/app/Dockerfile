@@ -1,11 +1,7 @@
-FROM python:3.12-alpine
+FROM ubuntu:22.04
 
-WORKDIR /app
+RUN apt update && apt install -y python3 python3-pip curl
 
-RUN pip install flask
+COPY index.html /var/www/html/index.html
 
-COPY app.py .
-
-EXPOSE 5000
-
-CMD ["python","app.py"]
+CMD ["bash"]
