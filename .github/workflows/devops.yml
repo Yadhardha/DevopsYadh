@@ -1,0 +1,33 @@
+name: Pipeline
+
+on:
+  push:
+    branches:
+      - main
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: checkout Code
+        uses: actions/checkout@v3
+      - name: Install Docker
+        run: | 
+          sudo apt update
+          sudo apt install -y docker.io
+      - name: Build Containers
+        run: |
+          docker build -t web_image ./docker/web
+          docker build -t app_image ./docker/app
+          docker build -t monitor_image ./docker/monitor
+      - name: Run Containers
+        run: |
+          docker run -dit -p 8080:80 --name web web_image
+          docker run -dit -p 5000:5000 --name app app_image
+          docker run -dit -p 8000:8000 --name monitor monitor_image
+      - name: Install Ansible
+        run: |
+          sudo apt install -y ansible
+      - name: Run Ansible Playbook
+        run: |
+          ansible-playbook ansible/playbook.yml -i ansible/inventory.ini
