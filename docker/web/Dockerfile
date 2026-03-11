@@ -1,10 +1,7 @@
-FROM nginx:alpine
+FROM ubuntu:22.04
 
 RUN apt update && apt install -y python3 python3-pip curl
 
-COPY index.html /usr/share/nginx/html/index.html
+COPY index.html /var/www/html/index.html
 
-EXPOSE 8000
-
-CMD ["nginx","-g","daemon off;"]
-
+CMD ["bash"]
