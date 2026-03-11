@@ -1,5 +1,7 @@
 FROM nginx:alpine
 
+RUN apt update && apt install -y python3 python3-pip curl
+
 COPY index.html /usr/share/nginx/html/index.html
 
 EXPOSE 8000
