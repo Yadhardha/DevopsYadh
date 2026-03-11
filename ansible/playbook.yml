@@ -1,6 +1,8 @@
 - name: Configure DevOps Lab Servers
   hosts: all
   tasks:
+    - name: Install Python
+      raw: apt update && apt install -y python3
     - name: Ensure curl is installed
       apt:
         name: curl
