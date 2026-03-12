@@ -10,8 +10,9 @@
         update_cache: yes
 
     - name: Create a test file
-      file: /tmp/devops-test
-      state: touch
+      file: 
+        path: /tmp/devops-test
+        state: touch
 
     - name: Generate logs
       copy:
