@@ -10,6 +10,12 @@
         update_cache: yes
 
     - name: Create a test file
-      copy:
-        content: "Hello from {{ inventory_hostname }} server!"
-        dest: /tmp/testfile.txt
+      file: /tmp/devops-test
+      state: touch
+
+    - name: Generate logs
+        content: "127.0.0.1 - - [12/Mar/2026:10:00:00] \"GET / HTTP/1.1\" 200\n"
+        dest: /tmp/devops.log
+
+    - name: Copy logs to Splunk container
+      command: docker cp /tmp/devops.log monitor:/opt/splunk/var/log/splunk/
