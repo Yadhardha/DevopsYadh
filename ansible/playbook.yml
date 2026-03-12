@@ -1,8 +1,9 @@
 - name: Configure DevOps Lab Servers
-  hosts: all
+  hosts: web
   tasks:
     - name: Install Python
       raw: apt update && apt install -y python3
+      
     - name: Ensure curl is installed
       apt:
         name: curl
@@ -17,7 +18,4 @@
     - name: Generate logs
       copy:
         content: '127.0.0.1 - - [12/Mar/2026:10:00:00] "GET / HTTP/1.1" 200'
-        dest: /tmp/devops.log
-
-    - name: Copy logs to Splunk container
-      command: docker cp /tmp/devops.log monitor:/opt/splunk/var/log/splunk/
+        dest: /var/log/nginx/access.log
