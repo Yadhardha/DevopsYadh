@@ -14,7 +14,8 @@
       state: touch
 
     - name: Generate logs
-        content: '127.0.0.1 - - [12/Mar/2026:10:00:00] \"GET / HTTP/1.1\" 200\n'
+      copy:
+        content: '127.0.0.1 - - [12/Mar/2026:10:00:00] "GET / HTTP/1.1" 200'
         dest: /tmp/devops.log
 
     - name: Copy logs to Splunk container
