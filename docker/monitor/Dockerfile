@@ -1,5 +1,6 @@
-FROM ubuntu:22.04
+FROM splunk/splunk:latest
 
-RUN apt update && apt install -y python3 python3-pip curl
+ENV SPLUNK_START_ARGS=--accept-license
+ENV SPLUNK_PASSWORD=ChintuPadma@45
 
-CMD ["bash"]
+EXPOSE 8000
