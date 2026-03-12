@@ -19,10 +19,17 @@ jobs:
           docker build -t web_image ./docker/web
           docker build -t monitor_image ./docker/monitor
 
-      - name: Run Containers
+      - name: Run Web Container
         run: |
-          docker run -dit -p 8080:80 --name web web_image
-          docker run -dit -p 8000:8000 --name monitor monitor_image
+          docker run -dit -p 8080:80 -v $(pwd)/logs:/var/log/nginx --name web web_image
+
+      - name: Run Splunk Container
+        run: |
+          docker run -dit -p 8000:8000 \
+          -v $(pwd)/logs:/logs \
+          -e SPLUNK_START_ARGS=--accept-license \
+          -e SPLUNK_PASSWORD=ChintuPadma@45 \
+          --name monitor monitor_image
 
       - name: Install Ansible
         run: |
