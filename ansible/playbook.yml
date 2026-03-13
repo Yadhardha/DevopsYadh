@@ -1,3 +1,4 @@
+
 - name: Configure DevOps Lab Servers
   hosts: web
   tasks:
@@ -18,4 +19,8 @@
     - name: Generate logs
       copy:
         content: '127.0.0.1 - - [12/Mar/2026:10:00:00] "GET / HTTP/1.1" 200'
+<<<<<<< HEAD
         dest: /var/log/nginx/access.log
+=======
+        dest: /var/log/nginx/access.log
+>>>>>>> 3ffd43c (update all)
