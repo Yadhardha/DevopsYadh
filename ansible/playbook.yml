@@ -1,26 +1,30 @@
 
 - name: Configure DevOps Lab Servers
-  hosts: web
+  hosts: all
+  
   tasks:
-    - name: Install Python
-      raw: apt update && apt install -y python3
-      
-    - name: Ensure curl is installed
-      apt:
-        name: curl
-        state: present
-        update_cache: yes
+    - name: Install Python and curl 
+      raw: apt update && apt install -y python3 curl 
 
     - name: Create a test file
       file: 
         path: /tmp/devops-test
         state: touch
 
-    - name: Generate logs
-      copy:
-        content: '127.0.0.1 - - [12/Mar/2026:10:00:00] "GET / HTTP/1.1" 200'
-<<<<<<< HEAD
-        dest: /var/log/nginx/access.log
-=======
-        dest: /var/log/nginx/access.log
->>>>>>> 3ffd43c (update all)
+    - name: Start web server and Generate logs
+      hosts: web
+      tasks:
+        - name: log generator script
+          copy:
+            src: ../log_generator/log_generator.py
+            dest: /tmp/log_generator.py
+            mode: '0755'
+    - name: start log generator
+      shell: nohup python3 /tmp/log_generator.py
+      args:
+          chdir: /tmp
+  
+    - name: Copy logs to splunk container
+      command: docker cp /tmp/devops.log splunk-monitor:/opt/splunk/var/log/splunk/
+      ignore_errors:yes
+
