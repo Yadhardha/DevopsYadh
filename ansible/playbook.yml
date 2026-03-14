@@ -1,30 +1,32 @@
----
+
 - name: Configure DevOps Lab Servers
   hosts: all
   become: yes
 
   tasks:
     - name: Install Python and curl
-      raw: apt update && apt install -y python3 curl
+      raw: apt update && apt install -y python3 curl docker.io
+    - name: start Docker service
+      service: 
+        name: docker
+        state: started
 
     - name: Create a test file
       file:
         path: /tmp/devops-test
         state: touch
-    - name: Build web Docker image
-      shell : docker build -t web-image ../docker/web
-    - name: Build splunk Docker image
-      shell: docker build -t splunk-image ../docker/monitor
+
     - name: Run web container
       shell: docker run -d --name web-server -p 8080:80 web-image
       ignore_errors: yes
+
     - name: Run splunk container
       shell: docker run -d --name splunk-server -p 9000:8000 splunk-image
       ignore_errors: yes
 
     - name: Copy log generator script
       copy:
-        src: ../log_generator/log_generator.py
+        src: ../docker/monitor/log_generator.py
         dest: /tmp/log_generator.py
         mode: '0755'
 
@@ -33,11 +35,6 @@
       args:
         chdir: /tmp
 
-
-- name: Send logs to Splunk
-  hosts: web
-
-  tasks:
     - name: Copy logs to splunk container
-      command: docker cp /tmp/devops.log splunk-monitor:/opt/splunk/var/log/splunk/
+      shell: docker cp /tmp/devops.log splunk-server:/opt/splunk/var/log/splunk/
       ignore_errors: yes
