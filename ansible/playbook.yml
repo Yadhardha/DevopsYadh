@@ -1,30 +1,39 @@
-
+---
 - name: Configure DevOps Lab Servers
   hosts: all
-  
+  gather_facts: no 
+  become: yes
+
   tasks:
-    - name: Install Python and curl 
-      raw: apt update && apt install -y python3 curl 
+    - name: Install Python and curl
+      raw: apt update && apt install -y python3 curl
 
     - name: Create a test file
-      file: 
+      file:
         path: /tmp/devops-test
         state: touch
 
-    - name: Start web server and Generate logs
-      hosts: web
-      tasks:
-        - name: log generator script
-          copy:
-            src: ../log_generator/log_generator.py
-            dest: /tmp/log_generator.py
-            mode: '0755'
-    - name: start log generator
-      shell: nohup python3 /tmp/log_generator.py
+
+- name: Start web server and generate logs
+  hosts: web
+
+  tasks:
+    - name: Copy log generator script
+      copy:
+        src: ../log_generator/log_generator.py
+        dest: /tmp/log_generator.py
+        mode: '0755'
+
+    - name: Start log generator
+      shell: nohup python3 /tmp/log_generator.py &
       args:
-          chdir: /tmp
-  
+        chdir: /tmp
+
+
+- name: Send logs to Splunk
+  hosts: web
+
+  tasks:
     - name: Copy logs to splunk container
       command: docker cp /tmp/devops.log splunk-monitor:/opt/splunk/var/log/splunk/
-      ignore_errors:yes
-
+      ignore_errors: yes
