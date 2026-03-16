@@ -52,5 +52,3 @@
         dest: /tmp/log_generator.py
         mode: "0755"
 
-    - name: Run log generator inside Splunk container
-      ansible.builtin.shell: docker exec -d splunk-server python3 /tmp/log_generator.py
