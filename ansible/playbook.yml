@@ -1,33 +1,56 @@
 ---
 - name: Configure DevOps Lab Servers
   hosts: local
-  become: false
+  connection: local
   gather_facts: false
+
   tasks:
-    - name: Ensure /tmp/devops_logs exists
-      file:
+
+    - name: Ensure log directory exists
+      ansible.builtin.file:
         path: /tmp/devops_logs
         state: directory
-        mode: '0777'
+        mode: "0777"
+
     - name: Build Web Docker image
-      command: docker build -t web-image ../docker/web
-      args:
-        chdir: "{{ playbook_dir }}"
-    - debug:
-        var: build_web.stderr_lines
+      community.docker.docker_image:
+        name: web-image
+        build:
+          path: "{{ playbook_dir }}/../docker/web"
+        source: build
+
     - name: Build Splunk Docker image
-      command: docker build -t splunk-image ../docker/monitor
-      args:
-        chdir: "{{ playbook_dir }}"
+      community.docker.docker_image:
+        name: splunk-image
+        build:
+          path: "{{ playbook_dir }}/../docker/monitor"
+        source: build
+
     - name: Run Web container
-      command: docker run -d --name web-server -p 8080:80 web-image
+      community.docker.docker_container:
+        name: web-server
+        image: web-image
+        state: started
+        restart_policy: always
+        ports:
+          - "8080:80"
+
     - name: Run Splunk container
-      command: docker run -d --name splunk-server -p 9000:8000 -v /logs:/logs splunk-image
-    - name: Copy log generator script into Splunk container
-      copy:
-        src: ../docker/monitor/log_generator.py
+      community.docker.docker_container:
+        name: splunk-server
+        image: splunk-image
+        state: started
+        restart_policy: always
+        ports:
+          - "9000:8000"
+        volumes:
+          - /logs:/logs
+
+    - name: Copy log generator script
+      ansible.builtin.copy:
+        src: "{{ playbook_dir }}/../docker/monitor/log_generator.py"
         dest: /tmp/log_generator.py
-        mode: '0755'
- 
+        mode: "0755"
+
     - name: Run log generator inside Splunk container
-      shell: docker exec -d splunk-server python3 /tmp/log_generator.py
+      ansible.builtin.shell: docker exec -d splunk-server python3 /tmp/log_generator.py
