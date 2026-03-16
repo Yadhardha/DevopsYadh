@@ -5,13 +5,11 @@
   gather_facts: false
  
   tasks:
- 
     - name: Ensure /tmp/devops_logs exists
       file:
         path: /tmp/devops_logs
         state: directory
         mode: '0777'
- 
     - name: Build Web Docker image
       command: docker build -t web-image ../docker/web
       args:
