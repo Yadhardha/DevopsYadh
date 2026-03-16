@@ -10,4 +10,4 @@ RUN chmod 644 /var/www/html/index.html
 
 EXPOSE 8080
 
-CMD["nginx","-g","daemon off;"]
+CMD ["nginx","-g","daemon off;"]
