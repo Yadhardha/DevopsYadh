@@ -1,14 +1,14 @@
 ---
-- name: Configure DevOps Lab Servers
+- name: DevOps Lab Setup
   hosts: local
   connection: local
   gather_facts: false
 
   tasks:
 
-    - name: Ensure log directory exists
-      ansible.builtin.file:
-        path: /tmp/devops_logs
+    - name: Ensure logs directory exists
+      file:
+        path: /logs
         state: directory
         mode: "0777"
 
@@ -18,6 +18,8 @@
         build:
           path: "{{ playbook_dir }}/../docker/web"
         source: build
+      environment:
+        DOCKER_HOST: unix:///var/run/docker.sock
 
     - name: Build Splunk Docker image
       community.docker.docker_image:
@@ -25,6 +27,15 @@
         build:
           path: "{{ playbook_dir }}/../docker/monitor"
         source: build
+      environment:
+        DOCKER_HOST: unix:///var/run/docker.sock
+
+    - name: Remove old containers
+      shell: |
+        docker rm -f web-server || true
+        docker rm -f splunk-server || true
+      environment:
+        DOCKER_HOST: unix:///var/run/docker.sock
 
     - name: Run Web container
       community.docker.docker_container:
@@ -34,6 +45,10 @@
         restart_policy: always
         ports:
           - "8080:80"
+        volumes:
+          - /logs:/logs
+      environment:
+        DOCKER_HOST: unix:///var/run/docker.sock
 
     - name: Run Splunk container
       community.docker.docker_container:
@@ -45,10 +60,5 @@
           - "9000:8000"
         volumes:
           - /logs:/logs
-
-    - name: Copy log generator script
-      ansible.builtin.copy:
-        src: "{{ playbook_dir }}/../docker/monitor/log_generator.py"
-        dest: /tmp/log_generator.py
-        mode: "0755"
-
+      environment:
+        DOCKER_HOST: unix:///var/run/docker.sock
