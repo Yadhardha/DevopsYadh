@@ -14,16 +14,19 @@ jobs:
 
       - name: Checkout Code
         uses: actions/checkout@v4
-
-      - name: Build Containers
-        run: |
-          docker build -t web_image ./docker/web
-          docker build -t monitor_image ./docker/monitor
+      - name: Install Python 
+        run: | 
+          sudo apt update 
+          sudo apt install -y python3 python3-pip
+      - name: Install docker
+        run: | 
+          sudo apt install -y docker.io 
+          sudo systemctl start docker
+          sudo systemctl enable docker
       - name: Install Ansible
         run: |
           sudo apt update
           sudo apt install -y ansible python3-pip
-          pip3 install docker
 
       - name: Run Ansible Playbook
         run: |

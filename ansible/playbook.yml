@@ -1,40 +1,49 @@
-
 - name: Configure DevOps Lab Servers
-  hosts: all
-  become: yes
+  hosts: localhost
+  connection :localhost`  
+  become: false
+  gather_facts: false
 
   tasks:
-    - name: Install Python and curl
-      raw: apt update && apt install -y python3 curl docker.io
-    - name: start Docker service
-      service: 
-        name: docker
+
+    - name: Start Web Server Container
+      docker_container:
+        name: web-server
+        image: web-image
         state: started
+        restart_policy: always
+        ports:
+          - "8080:80"
 
-    - name: Create a test file
+    - name: Start Splunk Container
+      docker_container:
+        name: splunk-server
+        image: splunk-image
+        state: started
+        restart_policy: always
+        ports:
+          - "9000:8000"
+
+    - name: Install Python
+      raw: apt-get update && apt-get install -y python3
+
+    - name: Ensure /tmp directory exists
       file:
-        path: /tmp/devops-test
-        state: touch
+        path: /tmp
+        state: directory
+        mode: "1777"
 
-    - name: Run web container
-      shell: docker run -d --name web-server -p 8080:80 web-image
-      ignore_errors: yes
-
-    - name: Run splunk container
-      shell: docker run -d --name splunk-server -p 9000:8000 splunk-image
-      ignore_errors: yes
+    - name: Install Python3 if not present
+      apt:
+        name: python3
+        state: present
+        update_cache: yes
 
     - name: Copy log generator script
       copy:
         src: ../docker/monitor/log_generator.py
         dest: /tmp/log_generator.py
-        mode: '0755'
+        mode: "0755"
 
-    - name: Start log generator
-      shell: nohup python3 /tmp/log_generator.py &
-      args:
-        chdir: /tmp
-
-    - name: Copy logs to splunk container
-      shell: docker cp /tmp/devops.log splunk-server:/opt/splunk/var/log/splunk/
-      ignore_errors: yes
+    - name: Start log generator script
+      shell: nohup python3 /tmp/log_generator.py > /tmp/logs.txt 2>&1 &
