@@ -1,66 +1,20 @@
----
-- name: DevOps Lab Setup
-  hosts: local
-  connection: local
-  gather_facts: false   # we don’t need full facts
-  vars:
-    logs_dir: "{{ playbook_dir }}/../logs"   # workspace-relative, writable by user
-
+- name: DevOps Lab Local Setup
+  hosts: localhost
+  gather_facts: false
   tasks:
-
-    - name: Ensure logs directory exists
-      file:
-        path: "{{ logs_dir }}"
-        state: directory
-        mode: "0777"
-
-    - name: Build Web Docker image
-      community.docker.docker_image:
-        name: web-image
-        build:
-          path: "{{ playbook_dir }}/../docker/web"
-        source: build
-      environment:
-        DOCKER_HOST: unix:///var/run/docker.sock
-
-    - name: Build Splunk Docker image
-      community.docker.docker_image:
-        name: splunk-image
-        build:
-          path: "{{ playbook_dir }}/../docker/monitor"
-        source: build
-      environment:
-        DOCKER_HOST: unix:///var/run/docker.sock
-
-    - name: Remove old containers
-      shell: |
-        docker rm -f web-server || true
-        docker rm -f splunk-server || true
-      environment:
-        DOCKER_HOST: unix:///var/run/docker.sock
-
+ 
+    - name: Build Web image
+      command: docker build -t web-image ../docker/web
+      args:
+        chdir: "{{ playbook_dir }}"
+ 
+    - name: Build Splunk image
+      command: docker build -t splunk-image ../docker/monitor
+      args:
+        chdir: "{{ playbook_dir }}"
+ 
     - name: Run Web container
-      community.docker.docker_container:
-        name: web-server
-        image: web-image
-        state: started
-        restart_policy: always
-        ports:
-          - "8080:80"
-        volumes:
-          - "{{ logs_dir }}:/logs"
-      environment:
-        DOCKER_HOST: unix:///var/run/docker.sock
-
+      command: docker run -d --name web-server -p 8080:80 web-image
+ 
     - name: Run Splunk container
-      community.docker.docker_container:
-        name: splunk-server
-        image: splunk-image
-        state: started
-        restart_policy: always
-        ports:
-          - "9000:8000"
-        volumes:
-          - "{{ logs_dir }}:/logs"
-      environment:
-        DOCKER_HOST: unix:///var/run/docker.sock
+      command: docker run -d --name splunk-server -p 9000:8000 -v /logs:/logs splunk-image
