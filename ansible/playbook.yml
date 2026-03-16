@@ -1,49 +1,38 @@
+---
 - name: Configure DevOps Lab Servers
-  hosts: localhost
-  connection :localhost`  
+  hosts: all
   become: false
   gather_facts: false
-
+ 
   tasks:
-
-    - name: Start Web Server Container
-      docker_container:
-        name: web-server
-        image: web-image
-        state: started
-        restart_policy: always
-        ports:
-          - "8080:80"
-
-    - name: Start Splunk Container
-      docker_container:
-        name: splunk-server
-        image: splunk-image
-        state: started
-        restart_policy: always
-        ports:
-          - "9000:8000"
-
-    - name: Install Python
-      raw: apt-get update && apt-get install -y python3
-
-    - name: Ensure /tmp directory exists
+ 
+    - name: Ensure /tmp/devops_logs exists
       file:
-        path: /tmp
+        path: /tmp/devops_logs
         state: directory
-        mode: "1777"
-
-    - name: Install Python3 if not present
-      apt:
-        name: python3
-        state: present
-        update_cache: yes
-
-    - name: Copy log generator script
+        mode: '0777'
+ 
+    - name: Build Web Docker image
+      command: docker build -t web-image ../docker/web
+      args:
+        chdir: "{{ playbook_dir }}"
+ 
+    - name: Build Splunk Docker image
+      command: docker build -t splunk-image ../docker/monitor
+      args:
+        chdir: "{{ playbook_dir }}"
+ 
+    - name: Run Web container
+      command: docker run -d --name web-server -p 8080:80 web-image
+ 
+    - name: Run Splunk container
+      command: docker run -d --name splunk-server -p 9000:8000 -v /logs:/logs splunk-image
+ 
+    - name: Copy log generator script into Splunk container
       copy:
         src: ../docker/monitor/log_generator.py
         dest: /tmp/log_generator.py
-        mode: "0755"
-
-    - name: Start log generator script
-      shell: nohup python3 /tmp/log_generator.py > /tmp/logs.txt 2>&1 &
+        mode: '0755'
+ 
+    - name: Run log generator inside Splunk container
+      shell: docker exec -d splunk-server python3 /tmp/log_generator.py
