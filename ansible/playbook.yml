@@ -2,13 +2,15 @@
 - name: DevOps Lab Setup
   hosts: local
   connection: local
-  gather_facts: false
+  gather_facts: false   # we don’t need full facts
+  vars:
+    logs_dir: "{{ playbook_dir }}/../logs"   # workspace-relative, writable by user
 
   tasks:
 
     - name: Ensure logs directory exists
       file:
-        path: "{{ ansible_env.HOME }}/logs"
+        path: "{{ logs_dir }}"
         state: directory
         mode: "0777"
 
@@ -46,7 +48,7 @@
         ports:
           - "8080:80"
         volumes:
-          - /logs:/logs
+          - "{{ logs_dir }}:/logs"
       environment:
         DOCKER_HOST: unix:///var/run/docker.sock
 
@@ -59,6 +61,6 @@
         ports:
           - "9000:8000"
         volumes:
-          - /logs:/logs
+          - "{{ logs_dir }}:/logs"
       environment:
         DOCKER_HOST: unix:///var/run/docker.sock
