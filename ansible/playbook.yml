@@ -8,7 +8,7 @@
 
     - name: Ensure logs directory exists
       file:
-        path: /logs
+        path: "{{ ansible_env.HOME }}/logs"
         state: directory
         mode: "0777"
 
