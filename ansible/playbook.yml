@@ -3,7 +3,6 @@
   hosts: local
   become: false
   gather_facts: false
- 
   tasks:
     - name: Ensure /tmp/devops_logs exists
       file:
@@ -14,18 +13,16 @@
       command: docker build -t web-image ../docker/web
       args:
         chdir: "{{ playbook_dir }}"
- 
+    - debug:
+        var: build_web.stderr_lines
     - name: Build Splunk Docker image
       command: docker build -t splunk-image ../docker/monitor
       args:
         chdir: "{{ playbook_dir }}"
- 
     - name: Run Web container
       command: docker run -d --name web-server -p 8080:80 web-image
- 
     - name: Run Splunk container
       command: docker run -d --name splunk-server -p 9000:8000 -v /logs:/logs splunk-image
- 
     - name: Copy log generator script into Splunk container
       copy:
         src: ../docker/monitor/log_generator.py
