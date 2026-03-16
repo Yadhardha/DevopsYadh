@@ -1,6 +1,6 @@
 ---
 - name: Configure DevOps Lab Servers
-  hosts: all
+  hosts: local
   become: false
   gather_facts: false
  
