@@ -3,10 +3,10 @@
   gather_facts: false
   tasks:
     - name: Remove existing web-image
-      command: docker rm -f web-image
+      command: docker rm -f web-server
       ignore_errors: yes
     - name: Remove existing splunk-image
-      command: docker rm -f splunk-image
+      command: docker rm -f splunk-server
       ignore_errors: yes
  
     - name: Build Web image
