@@ -2,6 +2,12 @@
   hosts: localhost
   gather_facts: false
   tasks:
+    - name: Remove existing web-image
+      command: docker rm -f web-image
+      ignore_errors: yes
+    - name: Remove existing splunk-image
+      command: docker rm -f splunk-image
+      ignore_errors: yes
  
     - name: Build Web image
       command: docker build -t web-image ../docker/web
@@ -17,4 +23,4 @@
       command: docker run -d --name web-server -p 8080:80 web-image
  
     - name: Run Splunk container
-      command: docker run -d --name splunk-server -p 9000:8000 --env-file /docker/monitor/.env splunk-image
+      command: docker run -d --name splunk-server -p 9000:8000 --env-file{{playbook_dir}}/../docker/monitor/.env splunk-image
