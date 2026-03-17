@@ -23,4 +23,4 @@
       command: docker run -d --name web-server -p 8080:80 web-image
  
     - name: Run Splunk container
-      command: docker run -d --name splunk-server -p 9000:8000 --env-file{{playbook_dir}}/../docker/monitor/.env splunk-image
+      command: docker run -d --name splunk-server -p 9000:8000 --env-file {{ playbook_dir }}/../docker/monitor/.env splunk-image
