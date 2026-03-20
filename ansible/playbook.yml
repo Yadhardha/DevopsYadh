@@ -5,10 +5,6 @@
     - name: Remove existing web-image
       command: docker rm -f web-server
       ignore_errors: yes
-    - name: Remove existing splunk-image
-      command: docker rm -f splunk-server
-      ignore_errors: yes
- 
     - name: Build Web image
       command: docker build -t web-image ../docker/web
       args:
@@ -28,3 +24,16 @@
     - name: Run Splunk container if not exists
       command: docker run -d --name splunk-server -p 9000:8000 --env-file {{ playbook_dir }}/../docker/monitor/.env splunk/splunk
       when: splunk_container.stdout==""
+
+    - name : splunk -HEC end point
+      uri:
+        url: http://localhost:8088/services/collector/health
+        methods: GET
+        status_code: 200
+      register: splunk_health
+      retries: 200
+      delay: 5
+      until: splunk_health.status=200
+
+    - name: Run log_generator.py
+      command: python3 docker/monitor/log_generator.py
