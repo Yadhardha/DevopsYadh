@@ -13,7 +13,7 @@
       when: splunk_container.stdout != ""
 
     - name: Run Splunk container if not exists
-      command: docker run -d --name splunk-server -p 9000:8000 -p 8080:8080 --env-file ./docker/monitor/.env splunk/splunk
+      command: docker run -d --name splunk-server -p 9000:8000 -p 8080:8080 --env-file ./docker/monitor/.env --user root splunk/splunk
       when: splunk_container.stdout == ""
 
     - name: Wait for Splunk HEC endpoint
