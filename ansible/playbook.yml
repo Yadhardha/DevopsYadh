@@ -25,7 +25,7 @@
       when: splunk_container.stdout != ""
 
     - name: Run Splunk container if not exists
-      command: docker run -d --name splunk-server -p 9000:8000 --env-file {{ playbook_dir }}/../docker/monitor/.env splunk/splunk
+      command: docker run -d --name splunk-server -p 9000:8000 -p 8080:8080 --env-file {{ playbook_dir }}/../docker/monitor/.env splunk/splunk
       when: splunk_container.stdout == ""
 
     - name: Wait for Splunk HEC endpoint
@@ -34,7 +34,7 @@
         method: GET
         status_code: 200
       register: splunk_health
-      retries: 200
+      retries: 20
       delay: 5
       until: splunk_health.status == 200
 
