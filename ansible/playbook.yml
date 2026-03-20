@@ -1,3 +1,4 @@
+---
 - name: DevOps Lab Local Setup
   hosts: localhost
   gather_facts: false
@@ -5,35 +6,39 @@
     - name: Remove existing web-image
       command: docker rm -f web-server
       ignore_errors: yes
+
     - name: Build Web image
       command: docker build -t web-image ../docker/web
       args:
         chdir: "{{ playbook_dir }}"
- 
+
     - name: Run Web container
       command: docker run -d --name web-server -p 8080:80 web-image
 
-    - name: Check if splunk exists or not
+    - name: Check if Splunk exists
       command: docker ps -a -q -f name=splunk-server
       register: splunk_container
       changed_when: false
-    - name: start splunk if exists
+
+    - name: Start Splunk if it exists
       command: docker start splunk-server
-      when: splunk_container.stdout !=""
- 
+      when: splunk_container.stdout != ""
+
     - name: Run Splunk container if not exists
       command: docker run -d --name splunk-server -p 9000:8000 --env-file {{ playbook_dir }}/../docker/monitor/.env splunk/splunk
-      when: splunk_container.stdout==""
+      when: splunk_container.stdout == ""
 
-    - name : splunk -HEC end point
+    - name: Wait for Splunk HEC endpoint
       uri:
         url: http://localhost:8088/services/collector/health
-        methods: GET
+        method: GET
         status_code: 200
       register: splunk_health
       retries: 200
       delay: 5
-      until: splunk_health.status=200
+      until: splunk_health.status == 200
 
     - name: Run log_generator.py
-      command: python3 docker/monitor/log_generator.py
+      command: python3 log_generator.py
+      args:
+        chdir: "{{ playbook_dir }}/../docker/monitor"
