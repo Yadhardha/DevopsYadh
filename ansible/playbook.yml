@@ -1,8 +1,7 @@
----
 - name: DevOps Lab Local Setup
   hosts: localhost
   gather_facts: false
-  tasks:   
+  tasks:
     - name: Check if Splunk exists
       command: docker ps -a -q -f name=splunk-server
       register: splunk_container
@@ -13,19 +12,8 @@
       when: splunk_container.stdout != ""
 
     - name: Run Splunk container if not exists
-      command: docker run -d --name splunk-server -p 9000:8000 -p 8080:8080 --env-file ./docker/monitor/.env --user root splunk/splunk
+      command: docker run -d --name splunk-server -p 9000:8000 -p 8080:8080 --env-file ./docker/monitor/.env splunk/splunk
       when: splunk_container.stdout == ""
 
-    - name: Wait for Splunk HEC endpoint
-      uri:
-        url: http://localhost:8088/services/collector/health
-        method: GET
-        status_code: 200
-      register: splunk_health
-      retries: 20
-      delay: 5
-      until: splunk_health.status == 200
-
     - name: Run log_generator.py
-      command: python3 ./docker/monitor log_generator.py
- 
+      command: python3 ./docker/monitor/logs logs.py
