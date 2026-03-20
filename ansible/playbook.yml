@@ -2,16 +2,7 @@
 - name: DevOps Lab Local Setup
   hosts: localhost
   gather_facts: false
-  tasks:
-    - name: Remove existing web-image
-      command: docker rm -f web-server
-      ignore_errors: yes
-
-    - name: Build Web image
-      command: docker build -t web-image ../docker/web
-      args:
-        chdir: "{{ playbook_dir }}"
-        
+  tasks:   
     - name: Check if Splunk exists
       command: docker ps -a -q -f name=splunk-server
       register: splunk_container
