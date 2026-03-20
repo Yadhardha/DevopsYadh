@@ -16,6 +16,15 @@
  
     - name: Run Web container
       command: docker run -d --name web-server -p 8080:80 web-image
+
+    - name: Check if splunk exists or not
+      command: docker ps -a -q -f name=splunk-server
+      register: splunk_container
+      changed_when: false
+    - name: start splunk if exists
+      command: docker start splunk-server
+      when: splunk_container.stdout !=""
  
-    - name: Run Splunk container
+    - name: Run Splunk container if not exists
       command: docker run -d --name splunk-server -p 9000:8000 --env-file {{ playbook_dir }}/../docker/monitor/.env splunk/splunk
+      when: splunk_container.stdout==""
