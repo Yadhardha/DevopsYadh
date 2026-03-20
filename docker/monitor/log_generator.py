@@ -1,16 +1,20 @@
 #!usr/bin/env python3
-
+from dotenv import load_dotenv
+import os
 import json
 import time
 import requests
 
+load_dotenv()
+SHT=os.getenv("SPLUNK_HEC_TOKEN")
+
 #splunk HEC Configuration
 
 SPLUNK_HEC_URL="http://localhost:8088/services/collector"
-SPLUNK_HEC_TOKEN="4c62b108-30d2-40a5-9020-aec2d4"
+
 
 HEADERS = {
-    "Authorization":f"Splunk {SPLUNK_HEC_TOKEN}","Content-Type":"application/json"
+    "Authorization":f"Splunk {SHT}","Content-Type":"application/json"
 }
 
 
