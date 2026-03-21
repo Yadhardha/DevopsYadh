@@ -1,32 +1,25 @@
-- name: DevOps Lab
+---
+- name: DevOps Lab Local Setup
   hosts: localhost
   gather_facts: false
   vars:
-    logs_path: "{{ playbook_dir }}/docker/monitor/logs"
-    env_file: "{{ playbook_dir }}/docker/monitor/.env"
-    splunk_container_name: splunk-server
-    splunk_image: splunk/splunk:latest
-    splunk_port_ui: 9000
-    splunk_port_forward: 9997
-
+    logs_path: /home/yadhardha45/DevopsYadh/docker/monitor/logs
+    env_file: /home/yadhardha45/DevopsYadh/docker/monitor/.env
   tasks:
-    - name: Check if Splunk container exists
-      command: docker ps -a -q -f name={{ splunk_container_name }}
+    - name: Check if Splunk exists
+      command: docker ps -a -q -f name=splunk-server
       register: splunk_container
       changed_when: false
 
     - name: Start Splunk if it exists
-      command: docker start {{ splunk_container_name }}
+      command: docker start splunk-server
       when: splunk_container.stdout != ""
 
-    - name: Run Splunk container if it does not exist
+    - name: Run Splunk container if not exists
       command: >
-        docker run -d
-        --name {{ splunk_container_name }}
-        -p {{ splunk_port_ui }}:8000
-        -p {{ splunk_port_forward }}:9997
-        --env-file {{ env_file }}
-        {{ splunk_image }}
+              docker run -d --name splunk-server -p 9000:8000 -p 9997:9997 --env-file ./docker/monitor/.env splunk/splunk
+      args:
+        chdir: /home/yadhardha45/DevopsYadh  # Forces the command to run from your project root
       when: splunk_container.stdout == ""
 
     - name: Wait for Splunk to start
