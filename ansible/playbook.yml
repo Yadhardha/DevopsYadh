@@ -20,13 +20,6 @@
         chdir: "{{ playbook_dir }}"
       when: splunk_container.stdout == ""
 
-    - name: Wait for Splunk to start
-      wait_for:
-        host: 127.0.0.1
-        port: "{{ splunk_port_ui }}"
-        delay: 10
-        timeout: 60
-
     - name: Configure Splunk Forwarder
       shell: |
         PASS=$(grep SPLUNK_PASSWORD {{ env_file }} | cut -d '=' -f2)
