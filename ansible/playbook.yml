@@ -4,31 +4,44 @@
   vars:
     logs_path: /home/yadhardha45/DevopsYadh/docker/monitor/logs
     env_file: /home/yadhardha45/DevopsYadh/docker/monitor/.env
-    
+    splunk_container_name: splunk-server
+    splunk_image: splunk/splunk:latest
+    splunk_port_ui: 9000
+    splunk_port_forward: 9997
+
   tasks:
-    - name: Check if Splunk exists
-      command: docker ps -a -q -f name=splunk-server
+    - name: Check if Splunk container exists
+      command: docker ps -a -q -f name={{ splunk_container_name }}
       register: splunk_container
       changed_when: false
 
     - name: Start Splunk if it exists
-      command: docker start splunk-server
+      command: docker start {{ splunk_container_name }}
       when: splunk_container.stdout != ""
 
-    - name: Run Splunk container if not exists
-      command: docker run -d --name splunk-server -p 9000:8000 -p 9997:9997 --env-file ./docker/monitor/.env splunk/splunk
+    - name: Run Splunk container if it does not exist
+      command: >
+        docker run -d
+        --name {{ splunk_container_name }}
+        -p {{ splunk_port_ui }}:8000
+        -p {{ splunk_port_forward }}:9997
+        --env-file {{ env_file }}
+        {{ splunk_image }}
       when: splunk_container.stdout == ""
+
+    - name: Wait for Splunk to start
+      wait_for:
+        host: 127.0.0.1
+        port: "{{ splunk_port_ui }}"
+        delay: 10
+        timeout: 60
+
     - name: Configure Splunk Forwarder
       shell: |
         PASS=$(grep SPLUNK_PASSWORD {{ env_file }} | cut -d '=' -f2)
-
         /opt/splunkforwarder/bin/splunk start --accept-license --answer-yes --no-prompt
-
-        /opt/splunkforwarder/bin/splunk add forward-server localhost:9997 -auth admin:$PASS
-
+        /opt/splunkforwarder/bin/splunk add forward-server localhost:{{ splunk_port_forward }} -auth admin:$PASS
         /opt/splunkforwarder/bin/splunk add monitor {{ logs_path }} -index main -sourcetype myapp_logs -auth admin:$PASS
-
         /opt/splunkforwarder/bin/splunk restart
-
-        
-     
+      args:
+        executable: /bin/bash
