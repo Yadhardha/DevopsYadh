@@ -24,7 +24,7 @@
       shell: |
         PASS=$(grep SPLUNK_PASSWORD {{ env_file }} | cut -d '=' -f2)
         /opt/splunkforwarder/bin/splunk start --accept-license --answer-yes --no-prompt
-        /opt/splunkforwarder/bin/splunk add forward-server localhost:{{ splunk_port_forward }} -auth admin:$PASS
+        /opt/splunkforwarder/bin/splunk add forward-server localhost:9997 -auth admin:$PASS
         /opt/splunkforwarder/bin/splunk add monitor {{ logs_path }} -index main -sourcetype myapp_logs -auth admin:$PASS
         /opt/splunkforwarder/bin/splunk restart
       args:
