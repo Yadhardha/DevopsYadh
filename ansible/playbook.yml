@@ -14,9 +14,10 @@
     - name: Start Splunk if it exists
       command: docker start splunk-server
       when: splunk_container.stdout != ""
-
     - name: Run Splunk container if not exists
-      command: docker run -d --name splunk-server -p 9000:8000 -p 9997:9997 --env-file {{env_file}} splunk/splunk
+      command: docker run -d --name splunk-server -p 9000:8000 -p 9997:9997 --env-file {{ env_file }} splunk/splunk
+      args:
+        chdir: "{{ playbook_dir }}"
       when: splunk_container.stdout == ""
 
     - name: Wait for Splunk to start
