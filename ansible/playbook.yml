@@ -2,8 +2,8 @@
   hosts: localhost
   gather_facts: false
   vars:
-    logs_path: /docker/monitor/logs
-    env_file: /docker/monitor/.env
+    logs_path: ./docker/monitor/logs
+    env_file: ./docker/monitor/.env
     splunk_container_name: splunk-server
     splunk_image: splunk/splunk:latest
     splunk_port_ui: 9000
