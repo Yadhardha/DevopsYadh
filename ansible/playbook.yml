@@ -19,5 +19,3 @@
       args:
         chdir: "{{ playbook_dir }}"
       when: splunk_container.stdout == ""
-    - name : Run python file
-      command: python3 {{logs_path}} logs.py
