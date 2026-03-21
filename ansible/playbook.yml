@@ -3,8 +3,8 @@
   hosts: localhost
   gather_facts: false
   vars:
-    logs_path: "{{ playbook_dir }}/docker/monitor/logs"
-    env_file: "{{ playbook_dir }}/docker/monitor/.env"
+    logs_path: "./docker/monitor/logs/devops.log"
+    env_file: "./docker/monitor/.env"
   tasks:
     - name: Check if Splunk exists
       command: docker ps -a -q -f name=splunk-server
