@@ -3,8 +3,8 @@
   hosts: localhost
   gather_facts: false
   vars:
-    logs_path: /home/yadhardha45/DevopsYadh/docker/monitor/logs
-    env_file: /home/yadhardha45/DevopsYadh/docker/monitor/.env
+    logs_path: "{{ playbook_dir }}/docker/monitor/logs"
+    env_file: "{{ playbook_dir }}/docker/monitor/.env"
   tasks:
     - name: Check if Splunk exists
       command: docker ps -a -q -f name=splunk-server
@@ -17,7 +17,7 @@
 
     - name: Run Splunk container if not exists
       command: >
-              docker run -d --name splunk-server -p 9000:8000 -p 9997:9997 --env-file ./docker/monitor/.env splunk/splunk
+              docker run -d --name splunk-server -p 9000:8000 -p 9997:9997 --env-file {{env_file}} splunk/splunk
       args:
         chdir: /home/yadhardha45/DevopsYadh  # Forces the command to run from your project root
       when: splunk_container.stdout == ""
