@@ -1,6 +1,10 @@
 - name: DevOps Lab Local Setup
   hosts: localhost
   gather_facts: false
+  vars:
+    logs_path: /home/yadhardha45/DevopsYadh/docker/monitor/logs
+    env_file: /home/yadhardha45/DevopsYadh/docker/monitor/.env
+    
   tasks:
     - name: Check if Splunk exists
       command: docker ps -a -q -f name=splunk-server
@@ -12,8 +16,19 @@
       when: splunk_container.stdout != ""
 
     - name: Run Splunk container if not exists
-      command: docker run -d --name splunk-server -p 9000:8000 -p 8080:8080 --env-file ./docker/monitor/.env splunk/splunk
+      command: docker run -d --name splunk-server -p 9000:8000 -p 9997:9997 --env-file ./docker/monitor/.env splunk/splunk
       when: splunk_container.stdout == ""
+    - name: Configure Splunk Forwarder
+      shell: |
+        PASS=$(grep SPLUNK_PASSWORD {{ env_file }} | cut -d '=' -f2)
 
-    - name: Run log_generator.py
-      command: python3 ./docker/monitor/logs logs.py
+        /opt/splunkforwarder/bin/splunk start --accept-license --answer-yes --no-prompt
+
+        /opt/splunkforwarder/bin/splunk add forward-server localhost:9997 -auth admin:$PASS
+
+        /opt/splunkforwarder/bin/splunk add monitor {{ logs_path }} -index main -sourcetype myapp_logs -auth admin:$PASS
+
+        /opt/splunkforwarder/bin/splunk restart
+
+        
+     
